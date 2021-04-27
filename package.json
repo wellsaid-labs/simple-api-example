@@ -13,10 +13,13 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "dev": "run-p server start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "server": "node-env-run server --exec nodemon | pino-colada"
   },
+  "proxy": "http://localhost:3001",
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -34,5 +37,16 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "abort-controller": "^3.0.0",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-pino-logger": "^6.0.0",
+    "node-env-run": "^4.0.2",
+    "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.7",
+    "npm-run-all": "^4.1.5",
+    "pino-colada": "^2.1.0"
   }
 }

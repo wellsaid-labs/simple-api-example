@@ -7,10 +7,23 @@
   pointer-events: none;
 }
 
+textarea {
+  margin-bottom: 24px;
+  width: 500px;
+  max-width: 100%;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+.input {
+  padding: 12px;
+  font-size: large;
+  width: 500px;
+  max-width: 100%;
 }
 
 .App-header {
