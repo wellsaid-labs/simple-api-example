@@ -5,7 +5,7 @@ Please check their documentation for client-specific settings.
 
 ## Get started
 
-First you need to get an WellSaid API key. Visit [developer.wellsaidlabs.com](https://developer.wellsaidlabs.com/) to get that process started. Create a `.env` at the root of this project and add the following line, substituting the placeholder with your API key.
+First you need to get an WellSaid API key. Visit [wellsaidlabs.com/features/api](https://wellsaidlabs.com/features/api) to get that process started. Create a `.env` at the root of this project and add the following line, substituting the placeholder with your API key.
 
 ```bash
 WELLSAID_API_KEY=<your-api-key>
