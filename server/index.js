@@ -5,6 +5,7 @@ const pino = require('express-pino-logger')();
 const AbortController = require('abort-controller');
 
 const ttsEndPoint = "https://api.wellsaidlabs.com/v1/tts/stream";
+const lookupEndpoint = "https://api.wellsaidlabs.com/v1/tts/respelling_suggestions?word=";
 
 const app = express();
 app.use(bodyParser.json());
@@ -43,6 +44,42 @@ app.post('/stream', async (req, res) => {
       speaker_id: avatarId,
       text,
     }),
+  });
+  
+  res.writeHead(ttsResponse.status, ttsResponse.headers.raw());
+  res.flushHeaders();
+
+  ttsResponse.body.pipe(res)
+});
+
+app.get('/respelling_suggestions', async (req, res) => {
+  const abortController = new AbortController();
+  const word = req.query.word;
+
+  req.on('aborted', () => {
+    // Graceful end of the TTS stream when a client connection is aborted
+    abortController.abort()
+  })
+
+  /**
+   * Should this request fail, make sure to check the response headers
+   * to try to find a root cause.
+   * 
+   * Rate-limiting headers:
+   * x-quota-limit: 200
+   * x-quota-remaining: 191
+   * x-quota-reset: 1622226323630
+   * x-rate-limit-limit: 5
+   * x-rate-limit-remaining: 4
+   * x-rate-limit-reset: 1619635874002
+   */
+  const ttsResponse = await fetch(lookupEndpoint + word, {
+    signal: abortController.signal,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': process.env.WELLSAID_API_KEY,
+    }
   });
   
   res.writeHead(ttsResponse.status, ttsResponse.headers.raw());
