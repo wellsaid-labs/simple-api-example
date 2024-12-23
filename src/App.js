@@ -67,8 +67,19 @@ function App() {
       setResponse(responseBody);
   }, [text])
 
+  const getLibraryRespelling = useCallback(async () => {
+    const response = await fetch('/replacement_libraries/' + text + '/replacements/' + replacement, { 
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const responseBody = JSON.stringify(await response.json())
+
+      setResponse(responseBody);
+  }, [text, replacement])
+
   const addLibraryRespelling = useCallback(async () => {
-    console.log('/replacement_libraries/' + text)
     const response = await fetch('/replacement_libraries/' + text, { 
         method: 'POST',
         headers: {
@@ -172,6 +183,26 @@ function App() {
             </div>
             <button className="input" onClick={addLibraryRespelling}>Add library respelling!</button>
           </div>);
+      case 'Get library respelling':
+        return (
+          <div className="App App-header">
+            <textarea 
+              rows={1}
+              placeholder="Enter library id here..."
+              value={text}
+              onChange={({ target }) => setText(target.value)}
+            />
+            <textarea 
+              rows={1}
+              placeholder="Enter respelling id here..."
+              value={replacement}
+              onChange={({ target }) => setReplacement(target.value)}
+            />
+            <div style={{ marginBottom: response ? 24 : 0 }}>
+              <p>{response}</p>
+            </div>
+            <button className="input" onClick={getLibraryRespelling}>Get library respelling!</button>
+          </div>);
       case "Use Oxford Lookup":
         return (
           <div className="App App-header">
@@ -202,6 +233,7 @@ function App() {
         <option value="Add library">Add library</option>
         <option value="Get library">Get library</option>
         <option value="Add library respelling">Add library respelling</option>
+        <option value="Get library respelling">Get library respelling</option>
         <option value="Use Oxford Lookup">Use Oxford Lookup</option>
       </select>
       <div className="layout-container">{renderLayout()}</div>

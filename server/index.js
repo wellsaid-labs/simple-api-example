@@ -162,6 +162,31 @@ app.post('/replacement_libraries/:id', async (req, res) => {
   ttsResponse.body.pipe(res)
 });
 
+app.get('/replacement_libraries/:id/replacements/:replacement', async (req, res) => {
+  const abortController = new AbortController();
+  const id = req.params.id;
+  const replacement = req.params.replacement;
+
+  req.on('aborted', () => {
+    // Graceful end of the TTS stream when a client connection is aborted
+    abortController.abort()
+  })
+  
+  const ttsResponse = await fetch(librariesEndpoint + "/" + id + "/replacements/" + replacement, {
+    signal: abortController.signal,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': process.env.WELLSAID_API_KEY,
+    }
+  });
+  
+  res.writeHead(ttsResponse.status, ttsResponse.headers.raw());
+  res.flushHeaders();
+
+  ttsResponse.body.pipe(res)
+});
+
 app.listen(3001, () =>
   console.log('Express server is running on localhost:3001')
 );
