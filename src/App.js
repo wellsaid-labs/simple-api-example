@@ -24,7 +24,9 @@ function App() {
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
   const [endpoint, setEndpoint] = useState(3);
-  const [lookup, setLookup] = useState('');
+  const [original, setOriginal] = useState('');
+  const [replacement, setReplacement] = useState('');
+  const [response, setResponse] = useState('');
 
   const getClip = useCallback(async () => {
     setUrl('');
@@ -40,17 +42,55 @@ function App() {
     setUrl(objectURL);
   }, [currentAvatar, text])
 
-  const getLookup = useCallback(async () => {
-    const response = await fetch('respelling_suggestions?word=' + text, { 
+  const createLibrary = useCallback(async () => {
+    const response = await fetch('/replacement_libraries', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: text })
+      });
+      const responseBody = JSON.stringify(await response.json())
+
+      setResponse(responseBody);
+  }, [text])
+
+  const getLibrary = useCallback(async () => {
+    const response = await fetch('/replacement_libraries?id=' + text, { 
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      const responseBody = JSON.stringify(await response.json())
+
+      setResponse(responseBody);
+  }, [text])
+
+  const addLibraryRespelling = useCallback(async () => {
+    console.log('/replacement_libraries/' + text)
+    const response = await fetch('/replacement_libraries/' + text, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ original, replacement, is_phonetic_respelling : false, enabled : true})
+      });
+      const responseBody = JSON.stringify(await response.json())
+
+      setResponse(responseBody);
+  }, [text, original, replacement])
+
+  const getLookup = useCallback(async () => {
+    const response = await fetch('respelling_suggestions/'+ text, { 
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         }
       });
     const responseBody = JSON.stringify(await response.json())
 
-    console.log(responseBody)
-    setLookup(responseBody);
+    setResponse(responseBody);
   }, [text])
 
   const renderLayout = () => {
@@ -81,25 +121,56 @@ function App() {
       case "Add library":
         return (
           <div className="App App-header">
-            <select 
-              className="input"
-              name='avatars'
-              value={currentAvatar}
-              onChange={({ target }) => { setCurrentAvatar(target.value); }}
-              style={{ marginBottom: 24 }}
-            >
-              {Avatars.map(avatar => (<option key={avatar.id} value={avatar.id}>{avatar.name}</option>))}
-            </select>
             <textarea 
-              rows={8}
-              placeholder="Enter text here..."
+              rows={1}
+              placeholder="Enter library name here..."
               value={text}
               onChange={({ target }) => setText(target.value)}
             />
-            <div style={{ marginBottom: url ? 24 : 0 }}>
-              {url && (<audio controls src={url} />)}
+            <div style={{ marginBottom: response ? 24 : 0 }}>
+              <p>{response}</p>
             </div>
-            <button className="input" onClick={getClip}>Get clip!</button>
+            <button className="input" onClick={createLibrary}>Create replacement library!</button>
+          </div>);
+      case "Get library":
+        return (
+          <div className="App App-header">
+            <textarea 
+              rows={1}
+              placeholder="Enter library id here..."
+              value={text}
+              onChange={({ target }) => setText(target.value)}
+            />
+            <div style={{ marginBottom: response ? 24 : 0 }}>
+              <p>{response}</p>
+            </div>
+            <button className="input" onClick={getLibrary}>Get library!</button>
+          </div>);
+      case 'Add library respelling':
+        return (
+          <div className="App App-header">
+            <textarea 
+              rows={1}
+              placeholder="Enter library id here..."
+              value={text}
+              onChange={({ target }) => setText(target.value)}
+            />
+            <textarea 
+              rows={1}
+              placeholder="Enter original here..."
+              value={original}
+              onChange={({ target }) => setOriginal(target.value)}
+            />
+            <textarea 
+              rows={1}
+              placeholder="Enter replacement here..."
+              value={replacement}
+              onChange={({ target }) => setReplacement(target.value)}
+            />
+            <div style={{ marginBottom: response ? 24 : 0 }}>
+              <p>{response}</p>
+            </div>
+            <button className="input" onClick={addLibraryRespelling}>Add library respelling!</button>
           </div>);
       case "Use Oxford Lookup":
         return (
@@ -110,8 +181,8 @@ function App() {
               value={text}
               onChange={({ target }) => setText(target.value)}
             />
-            <div style={{ marginBottom: lookup ? 24 : 0 }}>
-              <p>{lookup}</p>
+            <div style={{ marginBottom: response ? 24 : 0 }}>
+              <p>{response}</p>
             </div>
             <button className="input" onClick={getLookup}>Get respelling suggestions!</button>
           </div>);
@@ -129,6 +200,8 @@ function App() {
       >
         <option value="Stream">Stream</option>
         <option value="Add library">Add library</option>
+        <option value="Get library">Get library</option>
+        <option value="Add library respelling">Add library respelling</option>
         <option value="Use Oxford Lookup">Use Oxford Lookup</option>
       </select>
       <div className="layout-container">{renderLayout()}</div>
