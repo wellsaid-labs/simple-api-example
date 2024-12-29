@@ -27,6 +27,7 @@ function App() {
   const [original, setOriginal] = useState('');
   const [replacement, setReplacement] = useState('');
   const [response, setResponse] = useState('');
+  const [createdClip, setCreatedClip] = useState(null)
 
   const getClip = useCallback(async () => {
     setUrl('');
@@ -41,6 +42,44 @@ function App() {
     const objectURL = URL.createObjectURL(responseBlob);
     setUrl(objectURL);
   }, [currentAvatar, text])
+
+  const [clipsList, setClipsList] = useState([])
+  async function fetchClips() {
+    console.info("Fetching clips")
+    const clips_response= await fetch('/clips', {
+      method: 'GET',
+    })
+    console.info(clips_response.headers)
+    const clips = await clips_response.json()
+    console.info(clips)
+    setClipsList(clips);
+  }
+
+  async function createClip() {
+    console.log("create a clip")
+    const response = await fetch('/create_clip', { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ avatarId: parseInt(currentAvatar), text })
+    });
+    const response_body = await response.json()
+    console.info("got response body")
+    console.info(response_body)
+    setCreatedClip({id:response_body.clip_id, status: "WAITING"})
+    // const responseBlob = await response.blob()
+    // const objectURL = URL.createObjectURL(responseBlob);
+    // setUrl(objectURL);
+  }
+
+  async function updateClipStatus() {
+    console.info("update clip please")
+    const response = await fetch('/clips/' + createdClip.id)
+    const body = await response.json()
+    console.info(body)
+    setCreatedClip(body)
+  }
 
   const createLibrary = useCallback(async () => {
     const response = await fetch('/replacement_libraries', { 
@@ -217,6 +256,43 @@ function App() {
             </div>
             <button className="input" onClick={getLookup}>Get respelling suggestions!</button>
           </div>);
+      case "Async Clips":
+        return (    <div className="App App-header" >
+          <select 
+            className="input"
+            name='avatars'
+            value={currentAvatar}
+            onChange={({ target }) => { setCurrentAvatar(target.value); }}
+            style={{ marginBottom: 24 }}
+          >
+            {Avatars.map(avatar => (<option key={avatar.id} value={avatar.id}>{avatar.name}</option>))}
+          </select>
+          <textarea 
+            rows={8}
+            placeholder="Enter text here..."
+            value={text}
+            onChange={({ target }) => setText(target.value)}
+          />
+          {/* <div style={{ marginBottom: url ? 24 : 0 }}>
+            {url && (<audio controls src={url} />)}
+          </div> */}
+          <button className="input" onClick={createClip} disabled={text.trim().length == 0}>Create clip!</button>
+          <button className="input" onClick={fetchClips}>Fetch Clips</button>
+          { createdClip && (
+            <div>
+              Created Clip
+              <div> id: {createdClip.id} </div>
+              <div> status: {createdClip.status}</div>
+              {createdClip.status == "COMPLETE" && (<div style={{ marginBottom: url ? 24 : 0 }}>
+            <audio controls src={createdClip.url} />
+          </div>)}
+              <button onClick={updateClipStatus}>Update</button>
+            </div>
+            )}
+        <div>
+          {clipsList.map(clip => (<div>{clip.status}  {clip.id} {clip.status == "COMPLETE" && (<div style={{ marginBottom: clip.url ? 24 : 0 }}><audio controls src={clip.url} /></div>)}</div>))}
+        </div>
+      </div>);
       default:
         return <div>Select a layout from the dropdown.</div>;
     }
@@ -230,6 +306,7 @@ function App() {
         onChange={(e) => setEndpoint(e.target.value)}
       >
         <option value="Stream">Stream</option>
+        <option value="Async Clips">Async Clips</option>
         <option value="Add library">Add library</option>
         <option value="Get library">Get library</option>
         <option value="Add library respelling">Add library respelling</option>
