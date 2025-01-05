@@ -7,7 +7,7 @@ const AbortController = require('abort-controller');
 const apiServer = "https://api.wellsaidlabs.com/v1/tts"
 const clipsEndPoint = apiServer + "/clips"
 const ttsEndPoint = apiServer + "/stream";
-const lookupEndpoint = apiServer + "/respelling_suggestions?word=";
+const lookupEndpoint = apiServer + "/respelling_suggestions";
 const librariesEndpoint = apiServer + "/replacement_libraries";
 
 const app = express();
@@ -64,7 +64,7 @@ app.get('/respelling_suggestions', async (req, res) => {
     abortController.abort()
   })
 
-  const ttsResponse = await fetch(lookupEndpoint + word, {
+  const ttsResponse = await fetch(lookupEndpoint + "?word=" + word, {
     signal: abortController.signal,
     method: 'GET',
     headers: {
@@ -219,8 +219,8 @@ app.post('/create_clip', async (req, res) => {
    * x-rate-limit-remaining: 4
    * x-rate-limit-reset: 1619635874002
    */
-  console.info(avatarId)
-  console.info(text)
+  console.info("avatarId: " + avatarId)
+  console.info("text: " + text)
   const ttsResponse = await fetch(clipsEndPoint, {
     signal: abortController.signal,
     method: 'POST',
@@ -242,7 +242,7 @@ app.post('/create_clip', async (req, res) => {
 app.get("/clips/:id", async (req,res) => {
   const clip_id =  req.params.id
   console.info("want to get info for clip " +clip_id)
-  clips = await fetch(apiServer+"/clips/"+clip_id, {
+  clips = await fetch(clipsEndPoint + "/" + clip_id, {
     headers: {
       'Content-Type': 'application/json',
       'X-Api-Key': process.env.WELLSAID_API_KEY,

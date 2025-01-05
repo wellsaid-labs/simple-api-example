@@ -132,8 +132,8 @@ function App() {
   }, [text, original, replacement])
 
   const getLookup = useCallback(async () => {
-    const response = await fetch('respelling_suggestions/'+ text, { 
-        method: 'POST',
+    const response = await fetch('respelling_suggestions?word='+ text, { 
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json'
         }
