@@ -115,7 +115,11 @@ app.get('/replacement_libraries', async (req, res) => {
     abortController.abort()
   })
   
-  const ttsResponse = await fetch(librariesEndpoint +'/' + id, {
+  let url = librariesEndpoint;
+  if (id) {
+    url += '/' + id;
+  }
+  const ttsResponse = await fetch(url, {
     signal: abortController.signal,
     method: 'GET',
     headers: {
@@ -164,7 +168,7 @@ app.post('/replacement_libraries/:id', async (req, res) => {
   ttsResponse.body.pipe(res)
 });
 
-app.get('/replacement_libraries/:id/replacements/:replacement', async (req, res) => {
+app.get('/replacement_libraries/:id/replacements/:replacement?', async (req, res) => {
   const abortController = new AbortController();
   const id = req.params.id;
   const replacement = req.params.replacement;
@@ -174,7 +178,11 @@ app.get('/replacement_libraries/:id/replacements/:replacement', async (req, res)
     abortController.abort()
   })
   
-  const ttsResponse = await fetch(librariesEndpoint + "/" + id + "/replacements/" + replacement, {
+  let url = librariesEndpoint + "/" + id + "/replacements";
+  if (replacement) {
+    url += "/" + replacement;
+  }
+  const ttsResponse = await fetch(url, {
     signal: abortController.signal,
     method: 'GET',
     headers: {
