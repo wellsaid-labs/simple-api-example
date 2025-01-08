@@ -22,6 +22,8 @@ const Avatars = [
 function App() {
   const [currentAvatar, setCurrentAvatar] = useState(3);
   const [text, setText] = useState('');
+  const [library, setLibrary] = useState();
+  const [isPhoneticRespellingEnabled, setIsPhoneticRespellingEnabled] = useState(false);
   const [url, setUrl] = useState('');
   const [endpoint, setEndpoint] = useState(3);
   const [original, setOriginal] = useState('');
@@ -36,12 +38,17 @@ function App() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ avatarId: currentAvatar, text })
+        body: JSON.stringify({ avatarId: currentAvatar, text, library })
       });
     const responseBlob = await response.blob()
     const objectURL = URL.createObjectURL(responseBlob);
     setUrl(objectURL);
-  }, [currentAvatar, text])
+  }, [currentAvatar, text, library])
+
+
+  const handleCheckboxChange = async () => {
+    setIsPhoneticRespellingEnabled(!isPhoneticRespellingEnabled);
+  }
 
   const [clipsList, setClipsList] = useState([])
   async function fetchClips() {
@@ -62,7 +69,7 @@ function App() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ avatarId: parseInt(currentAvatar), text })
+      body: JSON.stringify({ avatarId: parseInt(currentAvatar), text, library })
     });
     const response_body = await response.json()
     console.info("got response body")
@@ -124,12 +131,12 @@ function App() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ original, replacement, is_phonetic_respelling : false, enabled : true})
+        body: JSON.stringify({ original, replacement, is_phonetic_respelling : isPhoneticRespellingEnabled, enabled : true})
       });
       const responseBody = JSON.stringify(await response.json())
 
       setResponse(responseBody);
-  }, [text, original, replacement])
+  }, [text, original, replacement, isPhoneticRespellingEnabled])
 
   const getLookup = useCallback(async () => {
     const response = await fetch('respelling_suggestions?word='+ text, { 
@@ -162,6 +169,12 @@ function App() {
             placeholder="Enter text here..."
             value={text}
             onChange={({ target }) => setText(target.value)}
+          />
+          <textarea 
+            rows={1}
+            placeholder="Enter library here..."
+            value={library}
+            onChange={({ target }) => setLibrary(target.value)}
           />
           <div style={{ marginBottom: url ? 24 : 0 }}>
             {url && (<audio controls src={url} />)}
@@ -217,6 +230,14 @@ function App() {
               value={replacement}
               onChange={({ target }) => setReplacement(target.value)}
             />
+            <label>
+              <input
+                type="checkbox"
+                checked={isPhoneticRespellingEnabled}
+                onChange={handleCheckboxChange}
+              />
+              is Phonetic Respelling Enabled
+            </label>
             <div style={{ marginBottom: response ? 24 : 0 }}>
               <p>{response}</p>
             </div>
@@ -272,6 +293,12 @@ function App() {
             placeholder="Enter text here..."
             value={text}
             onChange={({ target }) => setText(target.value)}
+          />
+          <textarea 
+            rows={1}
+            placeholder="Enter library here..."
+            value={library}
+            onChange={({ target }) => setLibrary(target.value)}
           />
           {/* <div style={{ marginBottom: url ? 24 : 0 }}>
             {url && (<audio controls src={url} />)}

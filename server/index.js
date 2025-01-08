@@ -18,12 +18,21 @@ app.post('/stream', async (req, res) => {
   const abortController = new AbortController();
   const avatarId = req.body.avatarId;
   const text = req.body.text;
+  const library = req.body.library;
 
   req.on('aborted', () => {
     // Graceful end of the TTS stream when a client connection is aborted
     abortController.abort()
   })
-
+  let body = library ? JSON.stringify({
+    speaker_id: avatarId,
+    text,
+    library_ids: library
+  }) : JSON.stringify({
+    speaker_id: avatarId,
+    text,
+  });
+  console.log(body)
   /**
    * Should this request fail, make sure to check the response headers
    * to try to find a root cause.
@@ -43,10 +52,7 @@ app.post('/stream', async (req, res) => {
       'Content-Type': 'application/json',
       'X-Api-Key': process.env.WELLSAID_API_KEY,
     },
-    body: JSON.stringify({
-      speaker_id: avatarId,
-      text,
-    }),
+    body
   });
   
   res.writeHead(ttsResponse.status, ttsResponse.headers.raw());
@@ -137,7 +143,7 @@ app.get('/replacement_libraries', async (req, res) => {
 app.post('/replacement_libraries/:id', async (req, res) => {
   const abortController = new AbortController();
   const id = req.params.id;
-  const original = req.body.replacement;
+  const original = req.body.original;
   const replacement = req.body.replacement;
   const is_phonetic_respelling = req.body.is_phonetic_respelling;
   const enabled = req.body.enabled;
@@ -211,10 +217,22 @@ app.post('/create_clip', async (req, res) => {
   const abortController = new AbortController();
   const avatarId = req.body.avatarId;
   const text = req.body.text;
+  const library = req.body.library;
+
   req.on('aborted', () => {
     // Graceful end of the TTS stream when a client connection is aborted
     abortController.abort()
   })
+
+  let body = library ? JSON.stringify({
+    speaker_id: avatarId,
+    text,
+    library_ids: library
+  }) : JSON.stringify({
+    speaker_id: avatarId,
+    text,
+  });
+
   /**
    * Should this request fail, make sure to check the response headers
    * to try to find a root cause.
@@ -236,10 +254,7 @@ app.post('/create_clip', async (req, res) => {
       'Content-Type': 'application/json',
       'X-Api-Key': process.env.WELLSAID_API_KEY,
     },
-    body: JSON.stringify({
-      speaker_id: avatarId,
-      text,
-    }),
+    body
   });
   console.info(ttsResponse)
   response_body = await ttsResponse.json()
